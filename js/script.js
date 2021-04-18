@@ -3,6 +3,9 @@ const overview = document.querySelector(".overview");
 const username = "jbrunker-code";
 const repoList = document.querySelector(".repo-list");
 
+const reposElement = document.querySelector(".repos");
+const repoDataElement = document.querySelector(".repo-data");
+
 async function getData (){
     const retrieve = await fetch (`https://api.github.com/users/${username}`);
     const userData = await retrieve.json();
@@ -44,4 +47,37 @@ function displayRepos (repos){
         li.innerHTML = `<h3>${repo.name}</h3>`
         repoList.append(li);
     }
-}
+};
+
+repoList.addEventListener("click", function(e){
+    if (e.target.matches("h3")){
+        const repoName = e.target.innerText;
+        getRepoInfo(repoName);
+    }
+});
+
+async function getRepoInfo (repoName){
+    const repoResponse = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
+    const repoInfo = await repoResponse.json();
+    const fetchLanguages = await fetch ("https://api.github.com/repos/jbrunker-code/github-repo-gallery/languages");
+    const languageData = await fetchLanguages.json();
+    const languages = [];
+    for (let language in languageData){
+        languages.push(language);
+    };
+    displayRepoInfo(repoInfo, languages);
+};
+
+function displayRepoInfo(repoInfo, languages){
+    repoDataElement.innerHTML = "";
+    const div = document.createElement("div");
+    div.innerHTML = `
+    <h3>Name: ${repoInfo.name}</h3>
+        <p>Description: ${repoInfo.description}</p>
+        <p>Default Branch: ${repoInfo.default_branch}</p>
+        <p>Languages: ${languages.join(", ")}</p>
+        <a class="visit" href="${repoInfo.svn_url}" target="_blank" rel="noreferrer noopener">View Repo on GitHub!</a>`;
+    repoDataElement.append(div);
+    repoDataElement.classList.remove("hide");
+    reposElement.classList.add("hide");
+    }
